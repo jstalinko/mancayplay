@@ -9,7 +9,7 @@
           <h1 class="text-3xl md:text-4xl font-extrabold tracking-tight text-gray-900 dark:text-gray-100">
             Koleksi Game Sharing
           </h1>
-          <p class="mt-2 text-base text-gray-600 dark:text-gray-400"> Koleksi Game Sharing untuk kamu!✨
+          <p class="mt-2 text-base text-gray-600 dark:text-gray-400"> Koleksi Game Sharing untuk kamu! 
 Beli sekarang, nikmati keseruan main game tanpa batas.
           </p>
         </div>
