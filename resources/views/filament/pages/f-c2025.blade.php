@@ -1,9 +1,12 @@
 <x-filament-panels::page>
-    <div class="space-y-8">
+    <div class="space-y-8"  x-data="{ mode: 'light' }"
+    x-on:dark-mode-toggled.window="mode = $event.detail">
+        
         <!-- Bagian Logo -->
-        <div class="flex justify-center pt-4 pb-8 mb-5 bg-white rounded-lg">
-            {{-- Ganti 'images/logo.svg' dengan path ke logo Anda --}}
-            <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/f/f4/Fc-25-logo.png/960px-Fc-25-logo.png" alt="Logo Perusahaan" class="h-18 " />
+        <div class="flex justify-center pt-4 pb-8 mb-5  rounded-lg">
+
+    <img src="{{ asset('fc/fc25-black.png') }}" alt="FC 2025 Logo"  style="max-width:500px;max-height:200px" class="bg-white rounded-lg" />
+
         </div>
 
         <!-- Grid untuk Action Cards -->

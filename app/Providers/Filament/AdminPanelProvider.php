@@ -26,7 +26,6 @@ class AdminPanelProvider extends PanelProvider
             ->default()
             ->id('admin')
             ->path('dashboard')
-            ->registration()
             ->login()
             ->colors([
                 'primary' => Color::Cyan,
@@ -50,6 +49,9 @@ class AdminPanelProvider extends PanelProvider
                 DisableBladeIconComponents::class,
                 DispatchServingFilamentEvent::class,
             ])
+            
+            ->brandLogo(asset('icon.png'))
+            ->favicon(asset('icon.png'))
             ->authMiddleware([
                 Authenticate::class,
             ])->plugins([

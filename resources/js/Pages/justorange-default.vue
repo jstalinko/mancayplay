@@ -1,16 +1,25 @@
 <template>
   <Navbar/>
   
-  <div :class="{'dark': isDarkMode}" class="min-h-screen bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-gray-100 transition-colors duration-300">
+  <div class="min-h-screen bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-gray-100 transition-colors duration-300">
     <div class="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
       
+      <div class="mb-8">
+        <input 
+          type="text" 
+          v-model="searchQuery"
+          placeholder="Cari game..."
+          class="w-full px-4 py-3 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-colors duration-300"
+        />
+      </div>
+
       <div class="flex flex-col sm:flex-row justify-between items-center mb-10 gap-4">
         <div class="text-center sm:text-left">
           <h1 class="text-3xl md:text-4xl font-extrabold tracking-tight text-gray-900 dark:text-gray-100">
             Koleksi Game Sharing
           </h1>
-          <p class="mt-2 text-base text-gray-600 dark:text-gray-400"> Koleksi Game Sharing untuk kamu! 
-Beli sekarang, nikmati keseruan main game tanpa batas.
+          <p class="mt-2 text-base text-gray-600 dark:text-gray-400"> 
+            Koleksi Game Sharing untuk kamu! Beli sekarang, nikmati keseruan main game tanpa batas.
           </p>
         </div>
 
@@ -25,30 +34,24 @@ Beli sekarang, nikmati keseruan main game tanpa batas.
       </div>
 
       <div class="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-        
         <div 
-          v-for="(product,index) in products" 
+          v-for="product in displayedProducts" 
           :key="product.id" 
           class="bg-white dark:bg-gray-800 rounded-xl shadow-lg overflow-hidden transform transition-all duration-300 hover:scale-105 hover:shadow-2xl flex flex-col"
         >
           <div class="relative">
-            
             <img class="w-full h-40 object-cover object-center" :src="imageUrl(product.image)" :alt="product.name">
             <span class="absolute top-3 left-3 inline-block bg-blue-500 text-white text-xs font-semibold px-2 py-1 rounded-full uppercase tracking-wider">
               {{ product.category ?? 'no category' }}
             </span>
           </div>
-
           <div class="p-4 flex flex-col flex-grow">
             <h2 class="text-lg font-bold text-gray-800 dark:text-gray-100 mb-1">
               {{ product.name }}
             </h2>
-            
-            
-            
             <div class="mt-auto flex items-center justify-between">
               <span class="text-xl font-extrabold text-gray-900 dark:text-gray-100">
-              {{ product.price == 0 ? 'Chat admin' : formatCurrency(product.price) }}
+                {{ product.price == 0 ? 'Chat admin' : formatCurrency(product.price) }}
               </span>
               <a :href="product.link" target="_blank" class="bg-indigo-600 text-white font-semibold px-3 py-1.5 text-sm rounded-md shadow-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-opacity-75 transition-colors duration-300">
                 Beli
@@ -56,30 +59,37 @@ Beli sekarang, nikmati keseruan main game tanpa batas.
             </div>
           </div>
         </div>
-        
+      </div>
+      
+      <div v-if="hasMoreProducts" class="mt-10 text-center">
+        <button 
+          @click="loadMore"
+          class="px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-lg shadow-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-opacity-75 transition-colors duration-300"
+        >
+          Lihat Lainnya
+        </button>
       </div>
 
     </div>
   </div>
+  <Footer/>
 </template>
 
 <script setup>
-// The script section remains the same as before
+import Footer from './Components/Footer.vue';
 import Navbar from './Components/Navbar.vue';
 import { formatCurrency, imageUrl } from '../utils/helpers';
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, computed, watch } from 'vue'; // [DIUBAH] import computed dan watch
 
-const isDarkMode = ref(false);
 const prop = defineProps({products:Object});
 
-
+// --- Logika Dark Mode (Tetap sama) ---
+const isDarkMode = ref(false);
 const toggleDarkMode = () => {
   isDarkMode.value = !isDarkMode.value;
   localStorage.setItem('darkMode', isDarkMode.value);
-  
   updateHtmlClass();
 };
-
 const updateHtmlClass = () => {
   if (isDarkMode.value) {
     document.documentElement.classList.add('dark');
@@ -87,7 +97,6 @@ const updateHtmlClass = () => {
     document.documentElement.classList.remove('dark');
   }
 };
-
 onMounted(() => {
   const savedMode = localStorage.getItem('darkMode');
   if (savedMode !== null) {
@@ -104,4 +113,45 @@ onMounted(() => {
     }
   });
 });
+
+// --- [BARU] Logika Pencarian dan Load More ---
+
+// Jumlah item yang ditampilkan per halaman/klik
+const ITEMS_PER_PAGE = 8;
+
+// State untuk input pencarian
+const searchQuery = ref('');
+// State untuk melacak jumlah item yang terlihat
+const visibleCount = ref(ITEMS_PER_PAGE);
+
+// 1. Filter produk berdasarkan searchQuery
+const filteredProducts = computed(() => {
+  if (!searchQuery.value) {
+    return prop.products;
+  }
+  return prop.products.filter(product => 
+    product.name.toLowerCase().includes(searchQuery.value.toLowerCase())
+  );
+});
+
+// 2. Potong daftar produk yang sudah difilter sejumlah visibleCount
+const displayedProducts = computed(() => {
+  return filteredProducts.value.slice(0, visibleCount.value);
+});
+
+// 3. Cek apakah ada produk lain untuk ditampilkan (untuk menampilkan/menyembunyikan tombol)
+const hasMoreProducts = computed(() => {
+  return visibleCount.value < filteredProducts.value.length;
+});
+
+// 4. Fungsi untuk menambah jumlah item yang terlihat
+const loadMore = () => {
+  visibleCount.value += ITEMS_PER_PAGE;
+};
+
+// 5. Watcher untuk mereset visibleCount saat user mulai mencari
+watch(searchQuery, () => {
+  visibleCount.value = ITEMS_PER_PAGE;
+});
+
 </script>

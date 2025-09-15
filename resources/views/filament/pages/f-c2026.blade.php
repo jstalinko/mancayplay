@@ -1,9 +1,8 @@
 <x-filament-panels::page>
     <div class="space-y-8">
         <!-- Bagian Logo -->
-        <div class="flex justify-center pt-4 pb-8 mb-5">
-            {{-- Ganti 'images/logo.svg' dengan path ke logo Anda --}}
-            <img src="{{asset('fc26.png')}}" alt="FC 2026" class="w-full h-20" />
+        <div class="flex justify-center pt-4 pb-8 mb-5 ">
+              <img src="{{ asset('fc/fc26-black.png') }}" alt="FC 2026 Logo"  style="max-width:500px;max-height:200px" class="bg-white rounded-lg" />
         </div>
 
         <!-- Grid untuk Action Cards -->
