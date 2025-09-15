@@ -7,9 +7,10 @@
       <div class="flex flex-col sm:flex-row justify-between items-center mb-10 gap-4">
         <div class="text-center sm:text-left">
           <h1 class="text-3xl md:text-4xl font-extrabold tracking-tight text-gray-900 dark:text-gray-100">
-            Katalog Produk Digital
+            Koleksi Game Sharing
           </h1>
-          <p class="mt-2 text-base text-gray-600 dark:text-gray-400"> Lisensi, kursus, aset, dan inovasi virtual untuk Anda.
+          <p class="mt-2 text-base text-gray-600 dark:text-gray-400"> Koleksi Game Sharing untuk kamu!✨
+Beli sekarang, nikmati keseruan main game tanpa batas.
           </p>
         </div>
 
@@ -47,7 +48,7 @@
             
             <div class="mt-auto flex items-center justify-between">
               <span class="text-xl font-extrabold text-gray-900 dark:text-gray-100">
-              {{ product.price ?? 'Chat admin' }}
+              {{ product.price == 0 ? 'Chat admin' : formatCurrency(product.price) }}
               </span>
               <a :href="product.link" target="_blank" class="bg-indigo-600 text-white font-semibold px-3 py-1.5 text-sm rounded-md shadow-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-opacity-75 transition-colors duration-300">
                 Beli
@@ -65,7 +66,7 @@
 <script setup>
 // The script section remains the same as before
 import Navbar from './Components/Navbar.vue';
-import { imageUrl } from '../utils/helpers';
+import { formatCurrency, imageUrl } from '../utils/helpers';
 import { ref, onMounted } from 'vue';
 
 const isDarkMode = ref(false);
@@ -75,6 +76,7 @@ const prop = defineProps({products:Object});
 const toggleDarkMode = () => {
   isDarkMode.value = !isDarkMode.value;
   localStorage.setItem('darkMode', isDarkMode.value);
+  
   updateHtmlClass();
 };
 

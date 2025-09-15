@@ -33,6 +33,9 @@ class ProductResource extends Resource
                 Forms\Components\FileUpload::make('image')
                     ->image()
                     ->required(),
+                Forms\Components\TextInput::make('category'),
+                Forms\Components\TextInput::make('price')->prefix('Rp'),
+                Forms\Components\Textarea::make('short_description'),
                 Forms\Components\Toggle::make('active')
                     ->required(),
             ]);
