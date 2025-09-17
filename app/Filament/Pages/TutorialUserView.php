@@ -23,7 +23,7 @@ class TutorialUserView extends Page
     // 4. (Optional) Make the page title dynamic
     public function getTitle(): string | Htmlable
     {
-        return $this->record->title;
+        return isset($_GET['record']) ? Tutorial::find($_GET['record'])->title : 'Tutorial User View';
     }
 
     public function mount()
