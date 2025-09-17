@@ -2,6 +2,8 @@
 
 namespace App\Filament\Pages;
 
+use BezhanSalleh\FilamentShield\Traits\HasPageShield;
+use BezhanSalleh\FilamentShield\Traits\HasPanelShield;
 use Filament\Actions\Action;
 use Filament\Forms;
 use Filament\Forms\Components\Section;
@@ -15,6 +17,8 @@ use Filament\Forms\Concerns\InteractsWithForms;
 
 class Setting extends Page implements HasForms
 {
+
+    use HasPageShield;
     use InteractsWithForms;
     protected static ?string $navigationIcon = 'heroicon-o-cog-6-tooth'; // Ikon diubah agar lebih sesuai
 

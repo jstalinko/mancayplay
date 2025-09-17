@@ -1,3 +1,39 @@
+@if(!auth()->user()->license_fc26)
+<x-filament-panels::page>
+    <div class="flex flex-col items-center justify-center gap-y-6 text-center" style="min-height: 50vh;">
+        
+        {{-- Ikon Gembok --}}
+        <div class="rounded-full bg-primary-100 p-4 dark:bg-primary-500/20">
+            <x-filament::icon
+                icon="heroicon-o-lock-closed"
+                class="h-12 w-12 text-primary-500"
+            />
+        </div>
+
+        <div class="flex flex-col items-center gap-y-1">
+            {{-- Judul Utama --}}
+            <h2 class="text-2xl font-bold tracking-tight text-gray-950 dark:text-white">
+                Akses Ditolak
+            </h2>
+
+            {{-- Pesan yang Anda Minta --}}
+            <p class="max-w-md text-base text-gray-600 dark:text-gray-400">
+                Anda tidak memiliki akses kesini, beli lisensi FC 2025 terlebih dahulu untuk mengakses halaman ini.
+            </p>
+        </div>
+
+        {{-- Tombol Aksi untuk Membeli Lisensi --}}
+        <x-filament::button
+            href="{{config('setting.fc2025_whatsapp_link')}}" {{-- TODO: Ganti dengan URL halaman pembelian lisensi Anda --}}
+            tag="a"
+            icon="heroicon-m-shopping-cart"
+        >
+            Beli Lisensi Sekarang
+        </x-filament::button>
+
+    </div>
+</x-filament-panels::page>
+@else
 <x-filament-panels::page>
     <div class="space-y-8">
         <!-- Bagian Logo -->
@@ -113,3 +149,4 @@
         </div>
     </div>
 </x-filament-panels::page>
+@endif

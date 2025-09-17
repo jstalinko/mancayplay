@@ -2,16 +2,17 @@
 
 namespace App\Filament\Widgets;
 
-use Filament\Widgets\StatsOverviewWidget as BaseWidget;
+use App\Models\User;
 use Filament\Widgets\StatsOverviewWidget\Stat;
+use Filament\Widgets\StatsOverviewWidget as BaseWidget;
 
 class DashboardStats extends BaseWidget
 {
     protected function getStats(): array
     {
         return [
-            Stat::make('Total Member' ,0)->description('Total member MancaPlay Saat ini'),
-            Stat::make('Sisa Generate Token',0)->description('Sisa generate token bulan ini'),
+            Stat::make('Total Member' ,User::count())->description('Total member MancayPlay Saat ini'),
+            Stat::make('Sisa Generate Token',auth()->user()->generate_token_quota.'x')->description('Sisa generate token bulan ini'),
             Stat::make('User' , auth()->user()->name)->description('Username akun anda')
         ];
     }
