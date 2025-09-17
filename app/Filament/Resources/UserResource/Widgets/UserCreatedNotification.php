@@ -6,7 +6,8 @@ use Filament\Widgets\Widget;
 
 class UserCreatedNotification extends Widget
 {
-    protected static string $view = 'filament.resources.user-resource.widgets.user-created-notification';
+    protected static string $view = 'filament.resources.user-resources.widgets.user-created-notification'; // 
+    
 
     protected string|array|int $columnSpan = 'full';
 
