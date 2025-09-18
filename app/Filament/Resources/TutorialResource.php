@@ -2,17 +2,17 @@
 
 namespace App\Filament\Resources;
 
-use App\Filament\Resources\TutorialResource\Pages;
-use App\Filament\Resources\TutorialResource\RelationManagers;
-use App\Models\Tutorial;
-use BezhanSalleh\FilamentShield\Traits\HasPanelShield;
 use Filament\Forms;
-use Filament\Forms\Form;
-use Filament\Resources\Resource;
 use Filament\Tables;
+use App\Models\Tutorial;
+use Filament\Forms\Form;
 use Filament\Tables\Table;
+use Filament\Resources\Resource;
 use Illuminate\Database\Eloquent\Builder;
+use App\Filament\Resources\TutorialResource\Pages;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
+use BezhanSalleh\FilamentShield\Traits\HasPanelShield;
+use App\Filament\Resources\TutorialResource\RelationManagers;
 
 class TutorialResource extends Resource
 {
@@ -23,6 +23,14 @@ class TutorialResource extends Resource
 
     protected static ?string $navigationGroup = 'Administrator Menu';
 
+    public static function canAccess(): bool
+    {
+        if(!auth()->user()->hasRole('super_admin'))
+        {
+            return false;
+        }
+        return true;
+    }
     public static function form(Form $form): Form
     {
         return $form
