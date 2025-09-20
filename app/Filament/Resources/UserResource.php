@@ -33,6 +33,8 @@ class UserResource extends Resource
                 Forms\Components\Select::make('roles')->relationship('roles', 'name')->multiple()->preload()->searchable(),
                 Forms\Components\Toggle::make('license_fc25')->label('Lisensi FC2025'),
                 Forms\Components\Toggle::make('license_fc26')->label('Lisensi FC2026'),
+                Forms\Components\TextInput::make('generate_token_quota')->label('Max Generate Toke (FC2025)')->default(3),
+                Forms\Components\TextInput::make('generate_token_quota_fc26')->label('Max Generate Token (FC2026)')->default(3)
             ]);
     }
 
@@ -47,6 +49,8 @@ class UserResource extends Resource
                  Tables\Columns\TextColumn::make('roles.name')->badge(),
                  Tables\Columns\ToggleColumn::make('license_fc25')->label('Lisensi FC2025'),
                  Tables\Columns\ToggleColumn::make('license_fc26')->label('Lisensi FC2026'),
+                 Tables\Columns\TextColumn::make('generate_token_quota')->label('Generate Token FC2025'),
+                 Tables\Columns\TextColumn::make('generate_token_quota_26')->label('Generate Token FC2026'),
 
                 Tables\Columns\TextColumn::make('created_at')
                     ->dateTime()

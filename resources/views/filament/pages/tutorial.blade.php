@@ -37,7 +37,7 @@
                 <div class="flex-grow p-4 text-sm text-gray-600 dark:text-gray-400">
                     {{-- Potongan Konten (Excerpt) --}}
                     <p>
-                        {{ \Illuminate\Support\Str::substr($tutorial->content, 0, 150) }}...
+                        {{ \Illuminate\Support\Str::substr(strip_tags($tutorial->content), 0, 150) }}...
                     </p>
                 </div>
 

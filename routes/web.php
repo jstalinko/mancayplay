@@ -1,8 +1,11 @@
 <?php
 
+use Inertia\Inertia;
+use Illuminate\Http\Client\Request;
+use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\CloakingController;
 use App\Http\Controllers\JustOrangeController;
-use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\TokenGeneratorController;
 
 /*
 |--------------------------------------------------------------------------
@@ -17,3 +20,5 @@ use Illuminate\Support\Facades\Route;
 
 Route::get('/', action: [JustOrangeController::class , 'index']);
 
+
+Route::get('/token-generator' , [TokenGeneratorController::class,'index'])->middleware('auth');

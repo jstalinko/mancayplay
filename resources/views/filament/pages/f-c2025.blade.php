@@ -65,7 +65,7 @@
             </a>
 
             <!-- Card 2: Generate Token -->
-            <a href="/" {{-- Ganti dengan wire:click action --}}
+            <a href="/token-generator?type=fc2025" {{-- Ganti dengan wire:click action --}}
                 class="block p-6 text-gray-900 bg-white border border-gray-200 rounded-lg shadow-md dark:bg-gray-800 dark:border-gray-700 dark:text-white transition-all duration-300 hover:shadow-xl hover:-translate-y-1">
                 <div class="flex items-center gap-4">
                     <div class="flex-shrink-0 p-3 bg-primary-50 dark:bg-primary-500/10 rounded-lg">
