@@ -65,91 +65,108 @@ class TokenGeneratorController extends Controller
     {
         return response()->json(['status' => 'ok']);
     }
-
-    public function generate(Request $request): JsonResponse
+      public function generate(Request $request): JsonResponse
     {
-        // ... (kode validasi dan lainnya tetap sama) ...
+        $validator = Validator::make($request->all(), [
+            'ticket' => 'required|string|min:1',
+            'type' => 'required|string',
+            'user_id' => 'required|exists:users,id'
+        ]);
 
-        $rawTicket = trim($request->input('ticket'));
-        $type = trim($request->input('type'));
-        $tokenFinal = null;
-
-        if (empty($this->EXECUTABLE_PATH[$type])) {
-            Log::error("Tidak ada generator yang ditemukan untuk tipe: {$type}. Periksa struktur direktori.");
-            return response()->json(['success' => false, 'message' => 'Kesalahan konfigurasi generator, coba lagi nanti..'], 500);
+        if ($validator->fails()) {
+            return response()->json(['error' => 'Pastikan input sudah benar.', 'details' => $validator->errors()], 400);
         }
 
-        $descriptorSpec = [
-            0 => ["pipe", "r"],
-            1 => ["pipe", "w"],
-            2 => ["pipe", "w"]
-        ];
+        $type = $request->input('type');
 
-        shuffle($this->EXECUTABLE_PATH[$type]);
-        $executablePath = $this->EXECUTABLE_PATH[$type][0];
-        Log::info("Path : " . $executablePath);
+        if (empty($this->EXECUTABLE_PATH[$type])) {
+            Log::error("Tidak ada generator yang ditemukan untuk tipe: {$type}.");
+            return response()->json(['success' => false, 'message' => 'Kesalahan konfigurasi generator.'], 500);
+        }
 
-        $process = proc_open("wine " . escapeshellarg($executablePath), $descriptorSpec, $pipes);
+        $rawTicket = $request->input('ticket');
+        $tokenFinal = null;
+        $process = null; // Inisialisasi variabel proses
 
-        if (is_resource($process)) {
+        // Gunakan try...finally untuk memastikan proses selalu ditutup
+        try {
+            $descriptorSpec = [
+                0 => ["pipe", "r"], // stdin
+                1 => ["pipe", "w"], // stdout
+                2 => ["pipe", "w"]  // stderr
+            ];
+
+            shuffle($this->EXECUTABLE_PATH[$type]);
+            $executablePath = $this->EXECUTABLE_PATH[$type][0];
+            Log::info("Memulai generator: " . $executablePath);
+
+            // Membuka proses
+            $process = proc_open("wine " . escapeshellarg($executablePath), $descriptorSpec, $pipes);
+
+            if (!is_resource($process)) {
+                Log::critical("Gagal memulai proses generator.");
+                return response()->json(['success' => false, 'message' => 'Gagal memulai proses generator.'], 500);
+            }
+
+            // --- PERUBAHAN UTAMA: PROSES INTERAKTIF & CEPAT ---
+
+            // 1. Tulis input ke generator
             fwrite($pipes[0], "1\n");
-            Log::info('[INPUT] >> 1');
-
             fwrite($pipes[0], $rawTicket . "\n");
-            Log::info("[INPUT] >> " . $rawTicket);
+            fclose($pipes[0]); // Tutup stdin setelah selesai menulis
 
-            fclose($pipes[0]);
+            // 2. Baca output secara REAL-TIME, baris per baris (BUKAN menunggu semua)
+            $fullOutput = '';
+            while (($line = fgets($pipes[1])) !== false) {
+                $trimmedLine = trim($line);
+                $fullOutput .= $line; // Kumpulkan semua output untuk logging jika perlu
+                Log::info("[GEN] >> " . $trimmedLine);
 
-            $output = stream_get_contents($pipes[1]);
-            fclose($pipes[1]);
-
+                // 3. Cek token di setiap baris
+                if (preg_match('/Generated token:\s*(.+)/', $trimmedLine, $matches)) {
+                    $tokenFinal = trim($matches[1]);
+                    Log::info("Token DITEMUKAN: " . $tokenFinal);
+                    
+                    // 4. SEGERA HENTIKAN PROSES! Tidak perlu menunggu selesai.
+                    proc_terminate($process); 
+                    break; // Keluar dari loop while
+                }
+            }
+            
+            // Simpan log jika Anda masih memerlukannya untuk debug
+            // Perbaikan path: gunakan dirname() untuk mendapatkan direktori
+            file_put_contents(dirname($executablePath) . "/result_log.txt", $fullOutput . PHP_EOL, FILE_APPEND);
+            
+            // Baca error stream
             $errors = stream_get_contents($pipes[2]);
-            fclose($pipes[2]);
-
-            $returnValue = proc_close($process);
-            Log::info("[SYSTEM] >> Process exited with code {$returnValue}");
-
             if (!empty($errors)) {
                 Log::error("[GEN_ERR] >> " . $errors);
             }
 
-            $lines = explode("\n", $output);
-            file_put_contents($executablePath."/result.txt",$lines);
-            foreach ($lines as $line) {
-                $line = trim($line);
-                if (!empty($line)) {
-                    Log::info("[GEN] >> " . $line);
-
-                    /// SESUDAH (Benar)
-                    if (preg_match('/Generated token:\s*(.+)/', $line, $matches)) {
-                        $tokenFinal = trim($matches[1]);
-                        break;
-                    }
-                }
+        } finally {
+            // 5. Pastikan semua resource ditutup dengan aman
+            if (isset($pipes) && is_array($pipes)) {
+                if (is_resource($pipes[1])) fclose($pipes[1]);
+                if (is_resource($pipes[2])) fclose($pipes[2]);
             }
-
-            if (!$tokenFinal) {
-                Log::error("[GEN_ERR] >> Token tidak dapat diekstrak dari output: " . $output);
-                return response()->json(['success' => false, 'message' => 'Token tidak ditemukan, coba lagi nanti..'], 500);
+            if (is_resource($process)) {
+                proc_close($process);
             }
-
-            $user_id = $request->user_id;
-            $user = \App\Models\User::find($user_id);
-            if ($type == 'fc2025') {
-                $quota = ($user->generate_token_quota - 1);
-                $user->generate_token_quota = $quota;
-                $user->save();
-            } elseif ($type == 'fc2026') {
-                $quota = ($user->generate_token_quota_fc26 - 1);
-                $user->generate_token_quota_fc26 = $quota;
-                $user->save();
-            }
-
-            return response()->json(['success' => true, 'data' => ['token' => $tokenFinal, 'generate_token_quota' => 2]]); // Untuk generate_token_quota, mungkin Anda ingin mengambil dari $user->generate_token_quota?
-
-        } else {
-            Log::critical("[FATAL] >> Failed to start generator process.");
-            return response()->json(['success' => false, 'message' => 'Failed to start generator process, coba lagi nanti..'], 500);
         }
+
+        if (!$tokenFinal) {
+            Log::error("[GEN_ERR] >> Token tidak dapat diekstrak dari output.");
+            return response()->json(['success' => false, 'message' => 'Token tidak ditemukan dalam output generator.'], 500);
+        }
+
+        // Proses update kuota user
+        $user = \App\Models\User::find($request->user_id);
+        if ($type == 'fc2025') {
+            $user->decrement('generate_token_quota');
+        } elseif ($type == 'fc2026') {
+            $user->decrement('generate_token_quota_fc26');
+        }
+
+        return response()->json(['success' => true, 'data' => ['token' => $tokenFinal]]);
     }
 }
