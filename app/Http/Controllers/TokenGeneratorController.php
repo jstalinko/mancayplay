@@ -114,16 +114,16 @@ class TokenGeneratorController extends Controller
             }
 
             $lines = explode("\n", $output);
+            file_put_contents($executablePath."/result.txt",$lines);
             foreach ($lines as $line) {
                 $line = trim($line);
                 if (!empty($line)) {
                     Log::info("[GEN] >> " . $line);
 
-                    // --- PERUBAHAN DI SINI ---
-                    // Menggunakan regex baru untuk mencari "Generated token: " dan mengambil semua teks setelahnya.
+                    /// SESUDAH (Benar)
                     if (preg_match('/Generated token:\s*(.+)/', $line, $matches)) {
-                        $tokenFinal = trim($matches[1]); // Ambil hasil tangkapan regex
-                        break; // Hentikan loop jika token sudah ditemukan
+                        $tokenFinal = trim($matches[1]);
+                        break;
                     }
                 }
             }
