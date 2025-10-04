@@ -37,7 +37,7 @@
 </x-filament-panels::page>
 @else
 <x-filament-panels::page>
-    <div class="space-y-8"  x-data="{ mode: 'light' }"
+    <div class="space-y-8"  x-data="{ mode: 'light' ,gridShow:true,token:''}"
     x-on:dark-mode-toggled.window="mode = $event.detail">
         
         <!-- Bagian Logo -->
@@ -48,7 +48,7 @@
         </div>
 
         <!-- Grid untuk Action Cards -->
-        <div class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
+        <div class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4" x-show="gridShow">
 
             <!-- Card 1: Download File -->
             <a href="{{config('setting.fc2025_download_link')}}" {{-- Ganti dengan URL unduhan atau wire:click action --}}
@@ -65,7 +65,7 @@
             </a>
 
             <!-- Card 2: Generate Token -->
-            <a href="/request-token/fc2025" {{-- Ganti dengan wire:click action --}}
+            <a href="#" @click="gridShow=!gridShow" {{-- Ganti dengan wire:click action --}}
                 class="block p-6 text-gray-900 bg-white border border-gray-200 rounded-lg shadow-md dark:bg-gray-800 dark:border-gray-700 dark:text-white transition-all duration-300 hover:shadow-xl hover:-translate-y-1">
                 <div class="flex items-center gap-4">
                     <div class="flex-shrink-0 p-3 bg-primary-50 dark:bg-primary-500/10 rounded-lg">
@@ -77,6 +77,7 @@
                     </div>
                 </div>
             </a>
+
 
             <!-- Card 3: Discord -->
             <a href="{{config('setting.fc2025_discord_link')}}" {{-- Ganti dengan link undangan Discord Anda --}} target="_blank"
@@ -152,6 +153,29 @@
                 </div>
             </a>
 
+        </div>
+
+        <div x-show="!gridShow">
+             <h2 class="text-lg font-semibold mb-4">Masukan Token Anda:</h2>
+            
+            <form method="POST" action="/request-token">
+                @csrf
+                <input type="hidden" name="type" value="fc2025">
+                <textarea  name="token" x-model="token"
+                    class="w-full border rounded-lg p-2 mb-4 dark:bg-gray-700 dark:text-white"
+                    placeholder="Masukan token disini" required></textarea>
+                
+                <div class="flex justify-end gap-2">
+                    <button type="button" @click="gridShow = !gridShow"
+                        class="px-4 py-2 bg-gray-200 rounded-lg dark:bg-gray-600 dark:text-white">
+                        Batal
+                    </button>
+                    <button type="submit"
+                        class="px-4 py-2 bg-primary-500 text-white rounded-lg hover:bg-primary-600">
+                        Submit
+                    </button>
+                </div>
+            </form>
         </div>
     </div>
 </x-filament-panels::page>

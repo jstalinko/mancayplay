@@ -50,7 +50,7 @@ class UserResource extends Resource
                  Tables\Columns\ToggleColumn::make('license_fc25')->label('Lisensi FC2025'),
                  Tables\Columns\ToggleColumn::make('license_fc26')->label('Lisensi FC2026'),
                  Tables\Columns\TextColumn::make('generate_token_quota')->label('Generate Token FC2025'),
-                 Tables\Columns\TextColumn::make('generate_token_quota_26')->label('Generate Token FC2026'),
+                 Tables\Columns\TextColumn::make('generate_token_quota_fc26')->label('Generate Token FC2026'),
 
                 Tables\Columns\TextColumn::make('created_at')
                     ->dateTime()
@@ -72,6 +72,17 @@ class UserResource extends Resource
                 Tables\Actions\BulkActionGroup::make([
                     Tables\Actions\DeleteBulkAction::make(),
                 ]),
+            ])->headerActions([
+                Tables\Actions\Action::make('Reset Generate Token')
+    ->requiresConfirmation()
+    ->color('danger')
+    ->icon('heroicon-o-arrow-path')
+    ->action(function () {
+        User::query()->update([
+            'generate_token_quota' => 3,
+            'generate_token_quota_fc26' => 3,
+        ]);
+    })
             ]);
     }
 

@@ -218,6 +218,7 @@ class TokenGeneratorController extends Controller
         $reqTok = new RequestToken();
         $reqTok->user_id = $user_id;
         $reqTok->token = 'Menunggu antrian ...';
+        $reqTok->user_token = $request->token;
         $reqTok->type = $type;
         $reqTok->status = 'pending';
         $reqTok->save();

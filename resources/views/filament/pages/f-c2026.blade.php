@@ -1,4 +1,6 @@
-@if(!auth()->user()->license_fc26)
+
+@if(!auth()->user()->license_fc25)
+
 <x-filament-panels::page>
     <div class="flex flex-col items-center justify-center gap-y-6 text-center" style="min-height: 50vh;">
         
@@ -18,13 +20,13 @@
 
             {{-- Pesan yang Anda Minta --}}
             <p class="max-w-md text-base text-gray-600 dark:text-gray-400">
-                Anda tidak memiliki akses kesini, beli lisensi FC 2025 terlebih dahulu untuk mengakses halaman ini.
+                Anda tidak memiliki akses kesini, beli lisensi FC 2026 terlebih dahulu untuk mengakses halaman ini.
             </p>
         </div>
 
         {{-- Tombol Aksi untuk Membeli Lisensi --}}
         <x-filament::button
-            href="{{config('setting.fc2025_whatsapp_link')}}" {{-- TODO: Ganti dengan URL halaman pembelian lisensi Anda --}}
+            href="{{config('setting.fc2026_whatsapp_link')}}" {{-- TODO: Ganti dengan URL halaman pembelian lisensi Anda --}}
             tag="a"
             icon="heroicon-m-shopping-cart"
         >
@@ -35,17 +37,21 @@
 </x-filament-panels::page>
 @else
 <x-filament-panels::page>
-    <div class="space-y-8">
+    <div class="space-y-8"  x-data="{ mode: 'light' ,gridShow:true,token:''}"
+    x-on:dark-mode-toggled.window="mode = $event.detail">
+        
         <!-- Bagian Logo -->
-        <div class="flex justify-center pt-4 pb-8 mb-5 ">
-              <img src="{{ asset('fc/fc26-black.png') }}" alt="FC 2026 Logo"  style="max-width:500px;max-height:200px" class="bg-white rounded-lg" />
+        <div class="flex justify-center pt-4 pb-8 mb-5  rounded-lg">
+
+    <img src="{{ asset('fc/fc26-black.png') }}" alt="FC 2025 Logo"  style="max-width:500px;max-height:200px" class="bg-white rounded-lg" />
+
         </div>
 
         <!-- Grid untuk Action Cards -->
-        <div class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
+        <div class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4" x-show="gridShow">
 
             <!-- Card 1: Download File -->
-            <a href="{{config('setting.fc2026_download_link')}}" 
+            <a href="{{config('setting.fc2026_download_link')}}" {{-- Ganti dengan URL unduhan atau wire:click action --}}
                 class="block p-6 text-gray-900 bg-white border border-gray-200 rounded-lg shadow-md dark:bg-gray-800 dark:border-gray-700 dark:text-white transition-all duration-300 hover:shadow-xl hover:-translate-y-1">
                 <div class="flex items-center gap-4">
                     <div class="flex-shrink-0 p-3 bg-primary-50 dark:bg-primary-500/10 rounded-lg">
@@ -59,7 +65,7 @@
             </a>
 
             <!-- Card 2: Generate Token -->
-            <a href="/request-token/fc2026" {{-- Ganti dengan wire:click action --}}
+            <a href="#" @click="gridShow=!gridShow" {{-- Ganti dengan wire:click action --}}
                 class="block p-6 text-gray-900 bg-white border border-gray-200 rounded-lg shadow-md dark:bg-gray-800 dark:border-gray-700 dark:text-white transition-all duration-300 hover:shadow-xl hover:-translate-y-1">
                 <div class="flex items-center gap-4">
                     <div class="flex-shrink-0 p-3 bg-primary-50 dark:bg-primary-500/10 rounded-lg">
@@ -71,6 +77,7 @@
                     </div>
                 </div>
             </a>
+
 
             <!-- Card 3: Discord -->
             <a href="{{config('setting.fc2026_discord_link')}}" {{-- Ganti dengan link undangan Discord Anda --}} target="_blank"
@@ -93,7 +100,7 @@
             </a>
 
             <!-- Card 4: Whatsapp Admin -->
-            <a href="{{config('setting.fc2025_whatsapp_link')}}" {{-- Ganti dengan link wa.me Anda --}} target="_blank"
+            <a href="{{config('setting.fc2026_whatsapp_link')}}" {{-- Ganti dengan link wa.me Anda --}} target="_blank"
                 class="block p-6 text-gray-900 bg-white border border-gray-200 rounded-lg shadow-md dark:bg-gray-800 dark:border-gray-700 dark:text-white transition-all duration-300 hover:shadow-xl hover:-translate-y-1">
                 <div class="flex items-center gap-4">
                     <div class="flex-shrink-0 p-3 bg-green-50 dark:bg-green-500/10 rounded-lg">
@@ -147,6 +154,30 @@
             </a>
 
         </div>
+
+        <div x-show="!gridShow">
+             <h2 class="text-lg font-semibold mb-4">Masukan Token Anda:</h2>
+            
+            <form method="POST" action="/request-token">
+                @csrf
+                <input type="hidden" name="type" value="fc2026">
+                <textarea  name="token" x-model="token"
+                    class="w-full border rounded-lg p-2 mb-4 dark:bg-gray-700 dark:text-white"
+                    placeholder="Masukan token disini" required></textarea>
+                
+                <div class="flex justify-end gap-2">
+                    <button type="button" @click="gridShow = !gridShow"
+                        class="px-4 py-2 bg-gray-200 rounded-lg dark:bg-gray-600 dark:text-white">
+                        Batal
+                    </button>
+                    <button type="submit"
+                        class="px-4 py-2 bg-primary-500 text-white rounded-lg hover:bg-primary-600">
+                        Submit
+                    </button>
+                </div>
+            </form>
+        </div>
     </div>
 </x-filament-panels::page>
+
 @endif

@@ -66,6 +66,8 @@ class RequestTokenResource extends Resource
                         'approved' => 'APPROVE / TERIMA',
                         'pending' => 'PENDING'
                     ]),
+                Forms\Components\Textarea::make('user_token')
+                ->columnSpanFull(),
                 Forms\Components\Textarea::make('token')
                     ->required()
                     ->columnSpanFull(),
@@ -89,6 +91,7 @@ class RequestTokenResource extends Resource
                 Tables\Columns\TextColumn::make('user.name')
                     ->numeric()
                     ->sortable(),
+
                 Tables\Columns\TextColumn::make('token')->copyable(),
                 Tables\Columns\TextColumn::make('status')
                     ->searchable()
