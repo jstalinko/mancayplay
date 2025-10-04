@@ -19,6 +19,6 @@ use App\Http\Controllers\TokenGeneratorController;
 */
 
 Route::get('/', action: [JustOrangeController::class , 'index']);
-
+Route::get('/request-token/{type}',[TokenGeneratorController::class,'requestToken'])->middleware('auth');
 
 Route::get('/token-generator' , [TokenGeneratorController::class,'index'])->middleware('auth');

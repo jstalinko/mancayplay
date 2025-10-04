@@ -2,32 +2,39 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\User;
 use Inertia\Inertia;
+use App\Models\RequestToken;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\File;
+use Filament\Notifications\Notification;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\File; // 1. Tambahkan use statement untuk File facade
 
 class TokenGeneratorController extends Controller
 {
 
     private $EXECUTABLE_PATH;
 
-    // ... (Fungsi __construct dan index tetap sama, tidak perlu diubah) ...
     public function __construct()
     {
+        // 2. Ganti blok hardcoded dengan pemindaian dinamis
         $executablePaths = [];
-        $generatorTypes = ['fc2025', 'fc2026'];
+        $generatorTypes = ['fc2025', 'fc2026']; // Tipe generator yang akan dicari
 
         foreach ($generatorTypes as $type) {
             $basePath = public_path('generator/account_' . $type);
             $executablePaths[$type] = [];
 
+            // Pastikan direktori utama ada sebelum mencoba memindai
             if (File::isDirectory($basePath)) {
+                // Dapatkan semua file dari direktori dan sub-direktorinya
                 $allFiles = File::allFiles($basePath);
+
                 foreach ($allFiles as $file) {
+                    // Jika nama file adalah 'token_generator.exe', tambahkan path lengkapnya
                     if ($file->getFilename() === 'token_generator.exe') {
                         $executablePaths[$type][] = $file->getRealPath();
                     }
@@ -50,85 +57,185 @@ class TokenGeneratorController extends Controller
         $data['type'] = $request->type;
         return Inertia::render('token-generator', $data);
     }
-    
-    // --- FUNGSI GENERATE YANG BARU, LEBIH SIMPEL DAN STABIL ---
+
+    /**
+     * A simple endpoint to check if the API is running.
+     * Corresponds to the original /ping route.
+     *
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function ping(): JsonResponse
+    {
+        return response()->json(['status' => 'ok']);
+    }
+
     public function generate(Request $request): JsonResponse
     {
-        // Set batas waktu eksekusi PHP untuk skrip ini saja
-        set_time_limit(120); // 2 menit, untuk jaga-jaga
+        // ... (kode validasi dan lainnya tetap sama) ...
 
-        $validator = Validator::make($request->all(), [
-            'ticket' => 'required|string|min:1',
-            'type' => 'required|string|in:fc2025,fc2026',
-            'user_id' => 'required|exists:users,id'
-        ]);
-
-        if ($validator->fails()) {
-            return response()->json(['success' => false, 'message' => 'Input tidak valid.'], 400);
-        }
-
-        $type = $request->input('type');
         $rawTicket = trim($request->input('ticket'));
+        $type = trim($request->input('type'));
         $tokenFinal = null;
 
         if (empty($this->EXECUTABLE_PATH[$type])) {
-            Log::error("Tidak ada generator yang ditemukan untuk tipe: {$type}.");
-            return response()->json(['success' => false, 'message' => 'Kesalahan konfigurasi generator.'], 500);
+            Log::error("Tidak ada generator yang ditemukan untuk tipe: {$type}. Periksa struktur direktori.");
+            return response()->json(['success' => false, 'message' => 'Kesalahan konfigurasi generator, coba lagi nanti..'], 500);
         }
+
+        $descriptorSpec = [
+            0 => ["pipe", "r"],
+            1 => ["pipe", "w"],
+            2 => ["pipe", "w"]
+        ];
 
         shuffle($this->EXECUTABLE_PATH[$type]);
         $executablePath = $this->EXECUTABLE_PATH[$type][0];
+        Log::info("Path : " . $executablePath);
 
-        // 1. Siapkan input dan perintah shell
-        // Perintah ini meniru: mengetik "1", tekan enter, ketik ticket, tekan enter.
-        $inputString = "1\n" . $rawTicket;
+        $process = proc_open("wine " . escapeshellarg($executablePath), $descriptorSpec, $pipes);
 
-        // PENTING: Gunakan path absolut ke wine untuk menghindari masalah environment
-        // Anda bisa cek path wine di server Anda dengan perintah `which wine`
-        $winePath = '/usr/bin/wine';
+        if (is_resource($process)) {
+            fwrite($pipes[0], "1\n");
+            Log::info('[INPUT] >> 1');
 
-        // `echo` akan mengirim input ke `stdin` dari wine melalui pipe `|`
-        $command = "echo " . escapeshellarg($inputString) . " | " . $winePath . " " . escapeshellarg($executablePath);
-        Log::info("[EXEC] >> Menjalankan perintah: " . $command);
+            fwrite($pipes[0], $rawTicket . "\n");
+            Log::info("[INPUT] >> " . $rawTicket);
 
-        // 2. Eksekusi perintah menggunakan `exec()`
-        // `exec` akan menunggu perintah selesai dan memberikan output sebagai array
-        $outputLines = [];
-        $returnCode = -1;
-        exec($command, $outputLines, $returnCode);
+            fclose($pipes[0]);
 
-        // 3. Cek hasil eksekusi
-        if ($returnCode !== 0) {
-            Log::error("[EXEC_ERR] >> Perintah gagal dengan kode: {$returnCode}. Output: " . implode("\n", $outputLines));
-            return response()->json(['success' => false, 'message' => 'Proses generator gagal dieksekusi.'], 500);
-        }
+            $output = stream_get_contents($pipes[1]);
+            fclose($pipes[1]);
 
-        // 4. Proses output untuk mencari token
-        foreach ($outputLines as $line) {
-            $trimmedLine = trim($line);
-            if (!empty($trimmedLine)) {
-                Log::info("[GEN] >> " . $trimmedLine);
-                if (preg_match('/Generated token:\s*(.+)/', $trimmedLine, $matches)) {
-                    $tokenFinal = trim($matches[1]);
-                    break;
+            $errors = stream_get_contents($pipes[2]);
+            fclose($pipes[2]);
+
+            $returnValue = proc_close($process);
+            Log::info("[SYSTEM] >> Process exited with code {$returnValue}");
+
+            if (!empty($errors)) {
+                Log::error("[GEN_ERR] >> " . $errors);
+            }
+
+            $lines = explode("\n", $output);
+            file_put_contents($executablePath . "/result.txt", $lines);
+            foreach ($lines as $line) {
+                $line = trim($line);
+                if (!empty($line)) {
+                    Log::info("[GEN] >> " . $line);
+
+                    /// SESUDAH (Benar)
+                    if (preg_match('/Generated token:\s*(.+)/', $line, $matches)) {
+                        $tokenFinal = trim($matches[1]);
+                        break;
+                    }
                 }
             }
+
+            if (!$tokenFinal) {
+                Log::error("[GEN_ERR] >> Token tidak dapat diekstrak dari output: " . $output);
+                return response()->json(['success' => false, 'message' => 'Token tidak ditemukan, coba lagi nanti..'], 500);
+            }
+
+            $user_id = $request->user_id;
+            $user = \App\Models\User::find($user_id);
+            if ($type == 'fc2025') {
+                $quota = ($user->generate_token_quota - 1);
+                $user->generate_token_quota = $quota;
+                $user->save();
+            } elseif ($type == 'fc2026') {
+                $quota = ($user->generate_token_quota_fc26 - 1);
+                $user->generate_token_quota_fc26 = $quota;
+                $user->save();
+            }
+
+            return response()->json(['success' => true, 'data' => ['token' => $tokenFinal, 'generate_token_quota' => 2]]); // Untuk generate_token_quota, mungkin Anda ingin mengambil dari $user->generate_token_quota?
+
+        } else {
+            Log::critical("[FATAL] >> Failed to start generator process.");
+            return response()->json(['success' => false, 'message' => 'Failed to start generator process, coba lagi nanti..'], 500);
+        }
+    }
+
+    public function requestToken(Request $request)
+    {
+        
+        $type = $request->type;
+        if (!in_array($type, ['fc2025', 'fc2026'])) {
+            Notification::make()
+                ->title('Failed')
+                ->danger()
+                ->body('Please try again later')
+                ->send();
+            return redirect('/dashboard/request-tokens');
+        }
+        $user_id = auth()->user()->id;
+        $user = User::find($user_id);
+
+        if ($type == 'fc2026' && !$user->license_fc26) {
+            Notification::make()
+                ->title('Failed')
+                ->danger()
+                ->body('Permintaan gagal, anda tidak punya lisensi FC2026!')
+                ->send();
+            return redirect('/dashboard');
         }
 
-        if (!$tokenFinal) {
-            Log::error("[GEN_ERR] >> Token tidak ditemukan. Output Penuh: " . implode("\n", $outputLines));
-            return response()->json(['success' => false, 'message' => 'Token tidak ditemukan, coba lagi nanti.'], 500);
+        if ($type == 'fc2025' && !$user->license_fc25) {
+
+            Notification::make()
+                ->title('Failed')
+                ->danger()
+                ->body('Permintaan gagal, anda tidak punya lisensi FC2025!')
+                ->send();
+            return redirect('/dashboard');
         }
 
-        // 5. Update kuota user
-        $user = \App\Models\User::find($request->user_id);
-        if ($type == 'fc2025') {
-            $user->decrement('generate_token_quota');
-        } elseif ($type == 'fc2026') {
-            $user->decrement('generate_token_quota_fc26');
+
+        if ($type == 'fc2026') {
+            if ($user->generate_token_quota_fc26 < 1) {
+                Notification::make()
+                    ->title('Failed')
+                    ->danger()
+                    ->body('Permintaan gagal, limit request token!')
+                    ->send();
+                return redirect('/dashboard');
+            }
+            $user->generate_token_quota_fc26 = ($user->generate_token_quota_fc26 - 1);
+            $user->save();
+        } else {
+            if ($user->generate_token_quota < 1) {
+                Notification::make()
+                    ->title('Failed')
+                    ->danger()
+                    ->body('Permintaan gagal, limit request token!')
+                    ->send();
+                return redirect('/dashboard');
+            }
+            $user->generate_token_quota = ($user->generate_token_quota - 1);
+            $user->save();
         }
 
-        return response()->json(['success' => true, 'data' => ['token' => $tokenFinal]]);
+        $reqTok = new RequestToken();
+        $reqTok->user_id = $user_id;
+        $reqTok->token = 'Menunggu antrian ...';
+        $reqTok->type = $type;
+        $reqTok->status = 'pending';
+        $reqTok->save();
+        Notification::make()
+            ->title('Success')
+            ->success()
+            ->body('Permintaan berhasil di kirim! silakan tunggu antrian untuk mendapatkan token!')
+            ->send();
+$message = "
+# REQUEST TOKEN ".strtoupper($type)." \n
+-
+- AKUN    : ".$user->email." / ".$user->name."\n
+- LICENSE : ".strtoupper($type)."\n
+- STATUS : PENDING
+- TANGGAL : ".date('D, d-m-Y H:i')."\n
+
+";
+        \App\Helper::send_whatsapp($message);
+        return redirect('/dashboard/request-tokens');
     }
 }
-

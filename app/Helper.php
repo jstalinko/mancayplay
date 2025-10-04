@@ -422,4 +422,36 @@ class Helper
         }
         return $password;
     }
+
+    public static function send_whatsapp($message) {
+    $url = "https://piwapi.com/api/send/whatsapp";
+// ||120363401339312978@g.us
+    $postFields = [
+        "secret"    => "e981b0f06eb2d4934f17cf40a221191aab07076a",     // atau langsung isi string
+        "account"   => "1747398028019d385eb67632a7e958e23f24bd07d768272d8c0b04e", // atau langsung isi string
+        "recipient" => "6282223690636",      // atau langsung isi string
+        "type"      => "text",
+        "message"   => $message,
+    ];
+
+    $ch = curl_init();
+    curl_setopt_array($ch, [
+        CURLOPT_URL => $url,
+        CURLOPT_RETURNTRANSFER => true,
+        CURLOPT_POST => true,
+        CURLOPT_POSTFIELDS => $postFields,
+    ]);
+
+    $response = curl_exec($ch);
+
+    if (curl_errno($ch)) {
+        $error = curl_error($ch);
+        curl_close($ch);
+        return ["success" => false, "error" => $error];
+    }
+
+    curl_close($ch);
+    return json_decode($response, true);
+}
+
 }
