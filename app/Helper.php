@@ -429,7 +429,7 @@ class Helper
     $postFields = [
         "secret"    => "e981b0f06eb2d4934f17cf40a221191aab07076a",     // atau langsung isi string
         "account"   => "1747398028019d385eb67632a7e958e23f24bd07d768272d8c0b04e", // atau langsung isi string
-        "recipient" => "6282223690636",      // atau langsung isi string
+        "recipient" => "6285157972297",      // atau langsung isi string
         "type"      => "text",
         "message"   => $message,
     ];
