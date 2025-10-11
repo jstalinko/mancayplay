@@ -1,5 +1,5 @@
 <x-filament-panels::page>
-    <div class="mx-auto max-w-7xl">
+    <div class="mx-auto w-full">
         {{-- Tombol Kembali ke Daftar Tutorial --}}
         <div class="mb-6">
             <x-filament::link
