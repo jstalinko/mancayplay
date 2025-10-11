@@ -1,5 +1,5 @@
 
-@if(!auth()->user()->license_fc25)
+@if(!auth()->user()->license_fc26)
 
 <x-filament-panels::page>
     <div class="flex flex-col items-center justify-center gap-y-6 text-center" style="min-height: 50vh;">

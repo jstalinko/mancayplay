@@ -82,49 +82,97 @@ class RequestTokenResource extends Resource
             ]);
     }
 
-    public static function table(Table $table): Table
-    {
-      
+public static function table(Table $table): Table
+{
+    return $table
+        ->columns([
+            Tables\Columns\TextColumn::make('user.name')
+                ->sortable(),
 
-        return $table
-            ->columns([
-                Tables\Columns\TextColumn::make('user.name')
-                    ->numeric()
-                    ->sortable(),
+            Tables\Columns\TextColumn::make('token')
+                ->copyable()
+                ->sortable()
+                ->formatStateUsing(fn($state) => substr($state, 0, 50) . '...'),
 
-                Tables\Columns\TextColumn::make('token')->copyable(),
-                Tables\Columns\TextColumn::make('status')
-                    ->searchable()
-                    ->badge()
-                    ->color(fn($state) => match($state) {
-                        'approved' => 'success',
-                        'rejected' => 'danger',
-                        'pending' => 'warning'
-                    }),
-                Tables\Columns\TextColumn::make('type')
-                    ->searchable()->label('Tipe Token'),
-                Tables\Columns\TextColumn::make('created_at')
-                    ->dateTime()
-                    ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true),
-                Tables\Columns\TextColumn::make('updated_at')
-                    ->dateTime()
-                    ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true),
-            ])
-            ->filters([
-                //
-            ])
-            ->actions([
-                Tables\Actions\ViewAction::make(),
-                Tables\Actions\EditAction::make(),
-            ])
-            ->bulkActions([
-                Tables\Actions\BulkActionGroup::make([
-                    Tables\Actions\DeleteBulkAction::make(),
-                ]),
-            ]);
-    }
+            Tables\Columns\TextColumn::make('status')
+                ->searchable()
+                ->badge()
+                ->color(fn($state) => match ($state) {
+                    'approved' => 'success',
+                    'rejected' => 'danger',
+                    'pending' => 'warning',
+                })
+                ->sortable(),
+
+            Tables\Columns\TextColumn::make('type')
+                ->searchable()
+                ->label('Tipe Token')
+                ->sortable(),
+
+            Tables\Columns\TextColumn::make('created_at')
+                ->dateTime()
+                ->sortable()
+                ->toggleable(isToggledHiddenByDefault: true),
+
+            Tables\Columns\TextColumn::make('updated_at')
+                ->dateTime()
+                ->sortable()
+                ->toggleable(isToggledHiddenByDefault: true),
+        ])
+        ->actions([
+            Tables\Actions\ViewAction::make(),
+            Tables\Actions\EditAction::make(),
+
+            // ✅ Copy User Token Action
+            Tables\Actions\Action::make('copy_user_token')
+                ->label('Copy User Token')
+                ->icon('heroicon-o-clipboard')
+                ->color('warning')
+                ->visible(fn() => auth()->user()->hasRole('super_admin'))
+                ->action(function (Model $record, $livewire) {
+                    $token = $record->user_token;
+
+                    $livewire->js("navigator.clipboard.writeText('{$token}')");
+
+                    \Filament\Notifications\Notification::make()
+                        ->title('User Token copied to clipboard!')
+                        ->success()
+                        ->send();
+                }),
+
+            // ✅ Edit Token Action with Modal
+            Tables\Actions\Action::make('edit_token')
+                ->label('Input Token')
+                ->icon('heroicon-o-pencil-square')
+                ->color('success')
+                ->visible(fn() => auth()->user()->hasRole('super_admin'))
+                ->form([
+                    Forms\Components\Textarea::make('token')
+                        ->label('Token')
+                        ->required()
+                        ->rows(5),
+                ])
+                ->action(function (array $data, Model $record) {
+                    $record->update([
+                        'token' => $data['token'],
+                    ]);
+
+                    \Filament\Notifications\Notification::make()
+                        ->title('Token successfully updated!')
+                        ->success()
+                        ->send();
+                })
+                ->modalHeading('Input Token')
+                ->modalSubmitActionLabel('Save Changes')
+                ->modalWidth('md'),
+        ])
+        ->bulkActions([
+            Tables\Actions\BulkActionGroup::make([
+                Tables\Actions\DeleteBulkAction::make(),
+            ]),
+        ]);
+}
+
 
     public static function getRelations(): array
     {
