@@ -171,6 +171,7 @@ public static function table(Table $table): Table
                 ->action(function (array $data, Model $record) {
                     $record->update([
                         'token' => $data['token'],
+                        'status' => 'approved'
                     ]);
 
                     \Filament\Notifications\Notification::make()
