@@ -130,22 +130,31 @@ public static function table(Table $table): Table
             Tables\Actions\ViewAction::make(),
             Tables\Actions\EditAction::make(),
 
-            // ✅ Copy User Token Action
-            Tables\Actions\Action::make('copy_user_token')
-                ->label('Copy Token')
-                ->icon('heroicon-o-clipboard')
-                ->color('warning')
-                ->visible(fn() => auth()->user()->hasRole('super_admin'))
-                ->action(function (Model $record, $livewire) {
-                    $token = $record->user_token;
+           Tables\Actions\Action::make('copy_user_token')
+    ->label('Copy Token')
+    ->icon('heroicon-o-clipboard')
+    ->color('warning')
+    ->visible(fn() => auth()->user()->hasRole('super_admin'))
+    ->action(function (Model $record, $livewire) {
+        // Encode ke JSON agar aman dimasukkan ke JS
+        $token = json_encode($record->user_token);
 
-                    $livewire->js("navigator.clipboard.writeText('{$token}')");
+        // Gunakan cara klasik untuk copy (tanpa navigator.clipboard)
+        $livewire->js("
+            const textArea = document.createElement('textarea');
+            textArea.value = {$token};
+            document.body.appendChild(textArea);
+            textArea.select();
+            document.execCommand('copy');
+            document.body.removeChild(textArea);
+        ");
 
-                    \Filament\Notifications\Notification::make()
-                        ->title('User Token copied to clipboard!')
-                        ->success()
-                        ->send();
-                }),
+        \Filament\Notifications\Notification::make()
+            ->title('User Token copied to clipboard!')
+            ->success()
+            ->send();
+    }),
+
 
             // ✅ Edit Token Action with Modal
             Tables\Actions\Action::make('edit_token')
