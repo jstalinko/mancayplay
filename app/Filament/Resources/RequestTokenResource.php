@@ -2,17 +2,18 @@
 
 namespace App\Filament\Resources;
 
+use Filament\Forms;
+use Filament\Tables;
+use Filament\Forms\Form;
+use Filament\Tables\Table;
+use App\Models\RequestToken;
+use Filament\Resources\Resource;
+use Illuminate\Database\Eloquent\Model;
+use Filament\Support\Enums\IconPosition;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\SoftDeletingScope;
 use App\Filament\Resources\RequestTokenResource\Pages;
 use App\Filament\Resources\RequestTokenResource\RelationManagers;
-use App\Models\RequestToken;
-use Filament\Forms;
-use Filament\Forms\Form;
-use Filament\Resources\Resource;
-use Filament\Tables;
-use Filament\Tables\Table;
-use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\SoftDeletingScope;
 
 class RequestTokenResource extends Resource
 {
@@ -89,10 +90,16 @@ public static function table(Table $table): Table
             Tables\Columns\TextColumn::make('user.name')
                 ->sortable(),
 
-            Tables\Columns\TextColumn::make('token')
-                ->copyable()
-                ->sortable()
-                ->formatStateUsing(fn($state) => substr($state, 0, 50) . '...'),
+         Tables\Columns\TextColumn::make('token')
+    ->label('Token')
+    ->sortable()
+    ->copyable()
+    ->copyMessage('Token copied to clipboard')
+    ->copyMessageDuration(1500) // optional
+    ->icon('heroicon-o-clipboard')              // or 'heroicon-m-clipboard'
+    ->iconPosition(IconPosition::After)         // show icon after the text
+    ->formatStateUsing(fn($state) => substr($state, 0, 50) . '...'),
+
 
             Tables\Columns\TextColumn::make('status')
                 ->searchable()

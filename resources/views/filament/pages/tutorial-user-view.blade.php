@@ -44,7 +44,8 @@
             @if(!empty($record->embed_youtube))
                 <div class="my-6 aspect-video border-2 border-gray-200  overflow-hidden rounded-xl shadow-lg ring-1 ring-gray-950/5 w-full" style="min-height:500px">
                     <iframe
-                        class="h-full w-full"
+                        height="550px"
+                        width="100%"
                         src="{{ $record->embed_youtube }}"
                         title="YouTube video player"
                         frameborder="0"
