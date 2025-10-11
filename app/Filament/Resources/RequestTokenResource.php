@@ -125,7 +125,7 @@ public static function table(Table $table): Table
 
             // ✅ Copy User Token Action
             Tables\Actions\Action::make('copy_user_token')
-                ->label('Copy User Token')
+                ->label('Copy Token')
                 ->icon('heroicon-o-clipboard')
                 ->color('warning')
                 ->visible(fn() => auth()->user()->hasRole('super_admin'))
