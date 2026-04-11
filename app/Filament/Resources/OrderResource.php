@@ -11,6 +11,7 @@ use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 
 class OrderResource extends Resource
@@ -108,6 +109,25 @@ class OrderResource extends Resource
                         'status'=> 'PAID',
                         'notes' => 'Order confirmed by admin at '.date('D,d-m-Y H:i'),
                     ]);
+                    $userRegistered = \App\Models\User::where('email' , $record->customer_email)->first();
+                    if($userRegistered)
+                    {
+                        $message = "Halo Kak *" . $userRegistered->name . "*\n\nTerima kasih sudah order di MancayPlay! Pesanan Kakak sudah berhasil di konfirmasi.\n\nBerikut adalah detail pesanan Kakak:\n\n*Invoice*: " . $record->invoice . "\n*Produk*: " . $record->product->name . "\n*Harga*: Rp " . number_format($record->price, 0, ',', '.') . "\n*Status*: PAID\n\nSilahkan login ke mancayplay.com/dashboard  untuk mendapatkan akses ke produk yang sudah dibeli.\n\nJika ada pertanyaan lebih lanjut, jangan ragu untuk menghubungi kami.\n\nTerima kasih!\n\nSalam hangat,\n*MancayPlay*";
+                    }else{
+                        
+                        \App\Models\User::create([
+                            'name' => $record->customer_name,
+                            'email' => $record->customer_email,
+                            'password' => Hash::make($record->customer_phone),
+                        ]);
+                        $message = "Halo Kak *" . $record->customer_name . "*\n\nTerima kasih sudah order di MancayPlay! Pesanan Kakak sudah berhasil di konfirmasi.\n\nBerikut adalah detail pesanan Kakak:\n\n*Invoice*: " . $record->invoice . "\n*Produk*: " . $record->product->name . "\n*Harga*: Rp " . number_format($record->price, 0, ',', '.') . "\n*Status*: PAID\n\n";
+                        $message.= "Detail login member mancayplay.com: \n\n";
+                        $message.= "Email: ".$record->customer_email."\n";
+                        $message.= "Password: ".$record->customer_phone."\n";
+                        $message.= "*NB: Setelah login silahkan ganti password anda!!*";
+                    }
+                    \App\Helper::send_whatsapp($message);
+
                 }),
                 Tables\Actions\ViewAction::make(),
                 Tables\Actions\EditAction::make(),
@@ -122,6 +142,25 @@ class OrderResource extends Resource
                             'status'=> 'PAID',
                             'notes' => 'Order confirmed by admin at '.date('D,d-m-Y H:i'),
                         ]);
+                        
+                        $userRegistered = \App\Models\User::where('email' , $record->customer_email)->first();
+                        if($userRegistered)
+                        {
+                            $message = "Halo Kak *" . $userRegistered->name . "*\n\nTerima kasih sudah order di MancayPlay! Pesanan Kakak sudah berhasil di konfirmasi.\n\nBerikut adalah detail pesanan Kakak:\n\n*Invoice*: " . $record->invoice . "\n*Produk*: " . $record->product->name . "\n*Harga*: Rp " . number_format($record->price, 0, ',', '.') . "\n*Status*: PAID\n\nSilahkan login ke mancayplay.com/dashboard  untuk mendapatkan akses ke produk yang sudah dibeli.\n\nJika ada pertanyaan lebih lanjut, jangan ragu untuk menghubungi kami.\n\nTerima kasih!\n\nSalam hangat,\n*MancayPlay*";
+                        } else {
+                            \App\Models\User::create([
+                                'name' => $record->customer_name,
+                                'email' => $record->customer_email,
+                                'password' => Hash::make($record->customer_phone),
+                            ]);
+                            $message = "Halo Kak *" . $record->customer_name . "*\n\nTerima kasih sudah order di MancayPlay! Pesanan Kakak sudah berhasil di konfirmasi.\n\nBerikut adalah detail pesanan Kakak:\n\n*Invoice*: " . $record->invoice . "\n*Produk*: " . $record->product->name . "\n*Harga*: Rp " . number_format($record->price, 0, ',', '.') . "\n*Status*: PAID\n\n";
+                            $message.= "Detail login member mancayplay.com: \n\n";
+                            $message.= "Email: ".$record->customer_email."\n";
+                            $message.= "Password: ".$record->customer_phone."\n";
+                            $message.= "*NB: Setelah login silahkan ganti password anda!!*";
+                        }
+                        \App\Helper::send_whatsapp($message);
+                        usleep(500000); // 500ms delay (using 500000 microseconds for 0.5s)
                     }
                 })->requiresConfirmation()->deselectRecordsAfterCompletion()
 
