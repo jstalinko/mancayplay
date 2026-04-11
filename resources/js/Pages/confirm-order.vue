@@ -22,7 +22,7 @@
                         </div>
                         <div>
                             <h3 class="text-2xl font-black text-gray-800 dark:text-gray-100 leading-tight mb-2">{{ selectedProduct.name }}</h3>
-                            <p class="text-sm text-gray-500 dark:text-gray-400 line-clamp-3 mb-4">{{ selectedProduct.short_description }}</p>
+                            <div class="text-sm text-gray-500 dark:text-gray-400 line-clamp-3 mb-4 prose prose-sm dark:prose-invert [&>p]:mb-0" v-html="selectedProduct.short_description"></div>
                             <div class="flex items-center justify-between py-4 border-t border-gray-200 dark:border-gray-700">
                                 <span class="text-xs font-bold text-gray-400 uppercase tracking-widest">Total Bayar</span>
                                 <span class="text-2xl font-black text-indigo-600 dark:text-indigo-400">{{ formatCurrency(selectedProduct.price) }}</span>

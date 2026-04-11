@@ -99,8 +99,9 @@ class ProductResource extends Resource
             ->columns([
                 Tables\Columns\TextColumn::make('name')
                     ->searchable(),
-                Tables\Columns\TextColumn::make('image')
-                    ->searchable(),
+                Tables\Columns\TextColumn::make('price')->money('IDR'),
+                Tables\Columns\IconColumn::make('otp_feature')
+                    ->boolean(),
                 Tables\Columns\ImageColumn::make('image'),
                 Tables\Columns\ToggleColumn::make('active')
                     ,

@@ -422,14 +422,20 @@ class Helper
         }
         return $password;
     }
+    public static function formatToNumber($number)
+    {
+        $rep = preg_replace("/^08/", "628",  $number);
+        $rep= str_replace([' ','-'],'',$rep);
 
-    public static function send_whatsapp($message) {
+        return $rep;
+    }
+    public static function send_whatsapp($message,$toNumber = "6285157972297") {
     $url = "https://piwapi.com/api/send/whatsapp";
 // ||120363401339312978@g.us
     $postFields = [
         "secret"    => "e981b0f06eb2d4934f17cf40a221191aab07076a",     // atau langsung isi string
         "account"   => "1747398028019d385eb67632a7e958e23f24bd07d768272d8c0b04e", // atau langsung isi string
-        "recipient" => "6285157972297",      // atau langsung isi string
+        "recipient" => self::formatToNumber($toNumber),      // atau langsung isi string
         "type"      => "text",
         "message"   => $message,
     ];

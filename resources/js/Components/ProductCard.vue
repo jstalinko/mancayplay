@@ -33,9 +33,8 @@
         <h3 class="text-[10px] md:text-2xl font-black text-white mb-0.5 md:mb-2 line-clamp-2 leading-tight group-hover:text-indigo-300 transition-colors">
           {{ product.name }}
         </h3>
-        <p v-if="product.short_description" class="hidden md:block text-sm text-gray-300 line-clamp-2 opacity-0 group-hover:opacity-100 transition-opacity duration-700 delay-100">
-          {{ product.short_description }}
-        </p>
+        <div v-if="product.short_description" class="hidden md:block text-sm text-gray-300 line-clamp-2 opacity-0 group-hover:opacity-100 transition-opacity duration-700 delay-100 prose prose-sm prose-invert [&>p]:mb-0" v-html="product.short_description">
+        </div>
       </div>
 
       <!-- Actions (Fixed at Bottom on Hover) -->

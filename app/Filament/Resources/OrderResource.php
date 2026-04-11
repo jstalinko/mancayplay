@@ -126,7 +126,7 @@ class OrderResource extends Resource
                         $message.= "Password: ".$record->customer_phone."\n";
                         $message.= "*NB: Setelah login silahkan ganti password anda!!*";
                     }
-                    \App\Helper::send_whatsapp($message);
+                    \App\Helper::send_whatsapp($message , $record->customer_phone);
 
                 }),
                 Tables\Actions\ViewAction::make(),
@@ -159,7 +159,7 @@ class OrderResource extends Resource
                             $message.= "Password: ".$record->customer_phone."\n";
                             $message.= "*NB: Setelah login silahkan ganti password anda!!*";
                         }
-                        \App\Helper::send_whatsapp($message);
+                        \App\Helper::send_whatsapp($message,$record->customer_phone);
                         usleep(500000); // 500ms delay (using 500000 microseconds for 0.5s)
                     }
                 })->requiresConfirmation()->deselectRecordsAfterCompletion()
