@@ -101,15 +101,32 @@ class OrderResource extends Resource
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
-                //
+                Tables\Filters\SelectFilter::make('status')
+                    ->options([
+                        'PAID' => 'PAID',
+                        'UNPAID' => 'UNPAID',
+                        'WAITING_CONFIRMATION' => 'WAITING_CONFIRMATION',
+                        'EXPIRED' => 'EXPIRED',
+                        'CANCELED' => 'CANCELED',
+                    ]),
+                Tables\Filters\SelectFilter::make('order_type')
+                    ->options([
+                        'web' => 'Web',
+                        'whatsapp' => 'WhatsApp',
+                        'shopee' => 'Shopee',
+                        'lynkid' => 'Lynk.id',
+                    ]),
             ])
             ->actions([
                 Tables\Actions\Action::make('mark_as_paid')->icon('heroicon-o-check-circle')->color('success')->visible(fn($record) => $record->status == 'WAITING_CONFIRMATION')->action(function($record){
+                    $product = \App\Models\Product::find($record->product_id);
                     $record->update([
+                        'product_content' => $product->getProductContent(),
                         'status'=> 'PAID',
                         'notes' => 'Order confirmed by admin at '.date('D,d-m-Y H:i'),
                     ]);
                     $userRegistered = \App\Models\User::where('email' , $record->customer_email)->first();
+                
                     if($userRegistered)
                     {
                         $message = "Halo Kak *" . $userRegistered->name . "*\n\nTerima kasih sudah order di MancayPlay! Pesanan Kakak sudah berhasil di konfirmasi.\n\nBerikut adalah detail pesanan Kakak:\n\n*Invoice*: " . $record->invoice . "\n*Produk*: " . $record->product->name . "\n*Harga*: Rp " . number_format($record->price, 0, ',', '.') . "\n*Status*: PAID\n\nSilahkan login ke mancayplay.com/dashboard  untuk mendapatkan akses ke produk yang sudah dibeli.\n\nJika ada pertanyaan lebih lanjut, jangan ragu untuk menghubungi kami.\n\nTerima kasih!\n\nSalam hangat,\n*MancayPlay*";
@@ -138,7 +155,9 @@ class OrderResource extends Resource
                 ]),
                 Tables\Actions\BulkAction::make('mark_as_paid')->icon('heroicon-o-check-circle')->color('success')->action(function($records) {
                     foreach($records as $record) {
+                        $product = \App\Models\Product::find($record->product_id);
                         $record->update([
+                            'product_content' => $product->getProductContent(),
                             'status'=> 'PAID',
                             'notes' => 'Order confirmed by admin at '.date('D,d-m-Y H:i'),
                         ]);
@@ -164,7 +183,8 @@ class OrderResource extends Resource
                     }
                 })->requiresConfirmation()->deselectRecordsAfterCompletion()
 
-                ]);
+                ])
+            ->defaultSort('id', 'desc');
     }
 
     public static function getRelations(): array

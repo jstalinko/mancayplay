@@ -25,4 +25,28 @@ class Product extends Model
         'akun_gmail_id',
         'get_only_subject'
     ];
+
+    public function removeProductContentFirstLine()
+    {
+        $this->product_content = substr($this->product_content, strpos($this->product_content, "\n") + 1);
+        $this->save();
+    }
+
+    public function getProductContentFirstLine()
+    {
+        return substr($this->product_content, 0, strpos($this->product_content, "\n"));
+    }
+
+    public function getProductContent()
+    {
+        if($this->product_type == 'text' && $this->remove_product_after_sale) {
+            $content = $this->getProductContentFirstLine();
+            $this->removeProductContentFirstLine();
+            return $content;
+        } else if($this->product_type == 'text'){
+            return $this->product_content;
+        }else{
+            return url('storage/'.$this->product_content);
+        }
+    }
 }

@@ -21,7 +21,8 @@ class Order extends Model
                 'price',
                 'status',
                 'payment_proof',
-                'notes'
+                'notes',
+                'product_content'
             ] ;
 
             public function product()
