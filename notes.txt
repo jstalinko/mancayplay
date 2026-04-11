@@ -1,0 +1,3 @@
+[KONFIRMASI PESANAN]
+- Untuk konfirmasi pesanan jika anda sudah terdaftar sebagai member di mancayplay.com, maka masukan email yang terdaftar di mancayplay.com
+- Jika tidak terdaftar sebagai member, maka masukan email yang aktif.

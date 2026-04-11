@@ -29,19 +29,67 @@ class ProductResource extends Resource
     {
         return $form
             ->schema([
-                Forms\Components\TextInput::make('name')
-                    ->required(),
-                
-                Forms\Components\TextInput::make('link')
-                    ->required(),
-                Forms\Components\FileUpload::make('image')
-                    ->image()
-                    ->required(),
-                Forms\Components\TextInput::make('category'),
-                Forms\Components\TextInput::make('price')->prefix('Rp'),
-                Forms\Components\Textarea::make('short_description'),
-                Forms\Components\Toggle::make('active')
-                    ->required(),
+                Forms\Components\Section::make('General Information')
+                    ->schema([
+                        Forms\Components\TextInput::make('name')
+                            ->required(),
+                        Forms\Components\TextInput::make('category'),
+                        Forms\Components\TextInput::make('link')
+                            ->required()->url()->columnSpanFull(),
+                        Forms\Components\FileUpload::make('image')
+                            ->image()
+                            ->columnSpanFull()
+                            ->required(),
+                        Forms\Components\TextInput::make('price')
+                            ->prefix('Rp')
+                            ->numeric(),
+                        Forms\Components\RichEditor::make('short_description')
+                            ->columnSpanFull(),
+                    ])->columns(2),
+
+                Forms\Components\Section::make('Product Content')
+                    ->schema([
+                        Forms\Components\Select::make('product_type')
+                            ->options([
+                                'text' => 'Text',
+                                'file' => 'File',
+                            ])
+                            ->required()
+                            ->live(),
+                        Forms\Components\Textarea::make('product_content')
+                            ->label('Product Content (Text)')
+                            ->visible(fn (Forms\Get $get) => $get('product_type') === 'text')
+                            ->required(fn (Forms\Get $get) => $get('product_type') === 'text')
+                            ->columnSpanFull()->helperText('Jika produk massal pisahkan dengan new-line'),
+                        Forms\Components\FileUpload::make('product_content')
+                            ->label('Product Content (File)')
+                            ->visible(fn (Forms\Get $get) => $get('product_type') === 'file')
+                            ->required(fn (Forms\Get $get) => $get('product_type') === 'file')
+                            ->columnSpanFull(),
+                    ]),
+
+                Forms\Components\Section::make('Settings')
+                    ->schema([
+                        Forms\Components\Toggle::make('active')
+                            ->required(),
+                        Forms\Components\Toggle::make('remove_product_after_sale')
+                            ->required()->helperText('Hapus akun / produk setelah di beli pelanggan. pisahkan dengan newline / enter bawah'),
+                    ])->columns(2),
+
+                Forms\Components\Section::make('Advanced Configuration')
+                    ->description('Enable OTP and assign associated accounts.')
+                    ->schema([
+                        Forms\Components\Toggle::make('otp_feature')
+                            ->default(false)
+                            ->live(),
+                        Forms\Components\Select::make('akun_gmail_id')
+                            ->label('Akun Gmail')
+                            ->options(fn() => \App\Models\AkunGmail::all()->mapWithKeys(fn($akun) => [$akun->id => "{$akun->name} - {$akun->email}"]))
+                            ->required(fn(Forms\Get $get) => $get('otp_feature'))
+                            ->visible(fn(Forms\Get $get) => $get('otp_feature')),
+                        Forms\Components\TextInput::make('get_only_subject')->label('Hanya Ambil Email dengan judul ini:')
+                            ->visible(fn(Forms\Get $get) => $get('otp_feature'))->columnSpanFull(),
+                    ])->columns(2),
             ]);
     }
 

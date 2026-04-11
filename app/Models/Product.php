@@ -17,6 +17,12 @@ class Product extends Model
         'link',
         'category',
         'price',
-        'short_description'
+        'short_description',
+        'product_type',
+        'remove_product_after_sale',
+        'product_content',
+        'otp_feature',
+        'akun_gmail_id',
+        'get_only_subject'
     ];
 }
