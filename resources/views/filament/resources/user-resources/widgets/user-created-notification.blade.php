@@ -62,7 +62,7 @@ User details:
 Email:    {{ $email }}
 Password: {{ $password }}
 
-Login ke https://mancaplay.com/dashboard untuk akses lisensi game anda!
+Login ke https://mancayplay.com/dashboard untuk akses lisensi game anda!
                     </pre>
                 </div>
 
