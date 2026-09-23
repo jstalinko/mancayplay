@@ -105,6 +105,32 @@ class Setting extends Page implements HasForms
                         ->required(),
                 ])->columns(2),
 
+            Section::make('FC 2027 Settings')
+                ->description('Atur semua tautan yang berhubungan dengan FC 2027.')
+                ->schema([
+                    // Gunakan prefix 'fc2027_'
+                    TextInput::make('fc2027_download_link')
+                        ->label('Download Link')
+                        ->placeholder('https://www.mediafire.com/...')
+                        ->url()
+                        ->required(),
+                    TextInput::make('fc2027_discord_link')
+                        ->label('Discord Link')
+                        ->placeholder('https://discord.gg/...')
+                        ->url()
+                        ->required(),
+                    TextInput::make('fc2027_whatsapp_link')
+                        ->label('Whatsapp Link')
+                        ->placeholder('https://wa.me/62...')
+                        ->url()
+                        ->required(),
+                    TextInput::make('fc2027_title_update_link')
+                        ->label('Title Update Link')
+                        ->placeholder('https://www.mediafire.com/...')
+                        ->url()
+                        ->required(),
+                ])->columns(2),
+
         ])->statePath('data');
     }
 

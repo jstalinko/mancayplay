@@ -77,7 +77,8 @@ class RequestTokenResource extends Resource
                     ->options(
                         [
                             'fc2025' => 'FC2025',
-                            'fc2026' => 'FC2026'
+                            'fc2026' => 'FC2026',
+                            'fc2027' => 'FC2027',
                         ]
                     ),
             ]);

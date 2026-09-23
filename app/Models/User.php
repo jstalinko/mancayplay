@@ -27,8 +27,10 @@ class User extends Authenticatable implements FilamentUser
         'password',
         'license_fc25',
         'license_fc26',
+        'license_fc27',
         'generate_token_quota',
-        'generate_token_quota_fc26'
+        'generate_token_quota_fc26',
+        'generate_token_quota_fc27'
     ];
 
     /**

@@ -22,7 +22,7 @@ class TokenGeneratorController extends Controller
     {
         // 2. Ganti blok hardcoded dengan pemindaian dinamis
         $executablePaths = [];
-        $generatorTypes = ['fc2025', 'fc2026']; // Tipe generator yang akan dicari
+        $generatorTypes = ['fc2025', 'fc2026', 'fc2027']; // Tipe generator yang akan dicari
 
         foreach ($generatorTypes as $type) {
             $basePath = public_path('generator/account_' . $type);
@@ -51,6 +51,9 @@ class TokenGeneratorController extends Controller
             return redirect('/dashboard');
         }
         if (!auth()->user()->license_fc26 && $request->type == 'fc2026') {
+            return redirect('/dashboard');
+        }
+        if (!auth()->user()->license_fc27 && $request->type == 'fc2027') {
             return redirect('/dashboard');
         }
         $data['user_id'] = Auth::user()->id;
@@ -146,6 +149,10 @@ class TokenGeneratorController extends Controller
                 $quota = ($user->generate_token_quota_fc26 - 1);
                 $user->generate_token_quota_fc26 = $quota;
                 $user->save();
+            } elseif ($type == 'fc2027') {
+                $quota = ($user->generate_token_quota_fc27 - 1);
+                $user->generate_token_quota_fc27 = $quota;
+                $user->save();
             }
 
             return response()->json(['success' => true, 'data' => ['token' => $tokenFinal, 'generate_token_quota' => 2]]); // Untuk generate_token_quota, mungkin Anda ingin mengambil dari $user->generate_token_quota?
@@ -160,7 +167,7 @@ class TokenGeneratorController extends Controller
     {
         
         $type = $request->type;
-        if (!in_array($type, ['fc2025', 'fc2026'])) {
+        if (!in_array($type, ['fc2025', 'fc2026', 'fc2027'])) {
             Notification::make()
                 ->title('Failed')
                 ->danger()
@@ -170,6 +177,15 @@ class TokenGeneratorController extends Controller
         }
         $user_id = auth()->user()->id;
         $user = User::find($user_id);
+
+        if ($type == 'fc2027' && !$user->license_fc27) {
+            Notification::make()
+                ->title('Failed')
+                ->danger()
+                ->body('Permintaan gagal, anda tidak punya lisensi FC2027!')
+                ->send();
+            return redirect('/dashboard');
+        }
 
         if ($type == 'fc2026' && !$user->license_fc26) {
             Notification::make()
@@ -191,7 +207,18 @@ class TokenGeneratorController extends Controller
         }
 
 
-        if ($type == 'fc2026') {
+        if ($type == 'fc2027') {
+            if ($user->generate_token_quota_fc27 < 1) {
+                Notification::make()
+                    ->title('Failed')
+                    ->danger()
+                    ->body('Permintaan gagal, limit request token!')
+                    ->send();
+                return redirect('/dashboard');
+            }
+            $user->generate_token_quota_fc27 = ($user->generate_token_quota_fc27 - 1);
+            $user->save();
+        } elseif ($type == 'fc2026') {
             if ($user->generate_token_quota_fc26 < 1) {
                 Notification::make()
                     ->title('Failed')
